@@ -44,7 +44,6 @@ contract Auction {
         deadline = block.timestamp + _durationSeconds;
     }
 
-    //funtions
     function placeBid() external payable onlyBeforeEnd {
         require(msg.value > 0, "You must send a value greater than 0.");
 
@@ -88,9 +87,17 @@ contract Auction {
         uint amount = accumulatedBids[msg.sender];
         require(amount > 0, "No deposit available.");
 
+        uint fee = (amount * 2) / 100; // 2% de comisión
+        uint refundAmount = amount - fee;
+
         accumulatedBids[msg.sender] = 0;
-        payable(msg.sender).transfer(amount);
-    }
+
+        // Send refund to user
+        payable(msg.sender).transfer(refundAmount);
+
+        // Send commission to owner
+        payable(owner).transfer(fee);
+}
 
     function getWinner() external view returns (address, uint) {
         return (highestBid.bidder, highestBid.amount);
